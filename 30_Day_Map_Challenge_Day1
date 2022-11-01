@@ -1,0 +1,107 @@
+###################################################################################################
+######################### This code was made by Larissa Cury (UFRGS)################################
+###################################################################################################
+
+### Aim: #30DayMapChallenge: Day 1 #points
+### Link: https://twitter.com/hashtag/30DayMapChallenge?src=hashtag_click
+
+### Following the tutorial from: 
+
+# Video: Como fazer mapas no R com ggplot2
+# Channel: Epidemio Fora da Curva (in Portuguese)
+# Link: https://www.youtube.com/watch?v=DIyNotrgpr0
+
+### Maps challenge 
+
+library(tidyverse)
+library(rnaturalearth)
+library(rnaturalearthhires)
+library(stringr)
+
+# devtools::install_github("AndySouth/rnaturalearthhires")
+
+################### FOLLOWING Como fazer mapas no R com ggplot2 's tutorial: ####################
+### import Brazil's data
+
+BRA <- ne_states(country = "Brazil",
+                 returnclass = "sf") ### file' class: 'simple features'
+
+### plot it: 
+
+plot(BRA)
+
+### select the desired state(s):
+
+MG <- BRA[BRA$name_en == "Minas Gerais", ]
+
+### enter city's coordenates:
+
+city <- c("Vicosa", "Lavras")
+
+lat <- c(-20.7474, -21.245) 
+lon <- c(-42.883, -44.9998)
+
+dat <- data.frame(city, lat, lon)
+
+### plot with ggplot2:
+
+ggplot() + 
+  geom_sf(data = BRA, fill = "white") + # plot Brazil's map behind it
+  geom_sf(data = MG, color = "black", fill = "grey") + # color of the map's border (color) and inside of it (fill)
+  geom_point(data = dat, aes(x = lon, y = lat, color = city)) +
+  theme_light() + 
+  labs(x = "Longitude",
+       y = "Latitude",
+       color = "City:")
+
+################################## Customizing it ##############################################
+### Aim: plot the distance between Faculdade de Letras (UFRJ) and Instituto de Letras (UFRGS)
+### latitude and longitude were obtained using Google Maps
+
+### select the desired state(s):
+
+States <- BRA %>% filter(postal %in% c("RJ", "RS"))
+
+### enter universities' coordinates:
+
+Names <- c("UFRJ", "UFRGS")   
+
+lat <- c(-22.8604, -30.0722) 
+lon <- c(-43.2249, -51.1181)
+
+### get the distance between them: 
+### check: https://stackoverflow.com/questions/32363998/function-to-calculate-geospatial-distance-between-two-points-lat-long-using-r
+library(geosphere)
+
+distance <- distm(c(-43.2249, -22.8604), c(-51.1181, -30.0722), fun = distHaversine)
+
+dat <- data.frame(Names, lat, lon)
+
+### put names as factor and reorder it:
+
+dat <- dat %>% 
+       mutate(Names = factor(Names, levels = c("UFRJ", "UFRGS")))
+
+levels(dat$Names)
+
+### plot with ggplot2:
+
+ggplot() + 
+  geom_sf(data = BRA, fill = "#D3D3D3") + # plot Brazil's map behind it
+  geom_sf(data = States, color = "black", fill = "#96DED1") + # color of the map's border (color); color inside of it (fill)
+  geom_line(data = dat, aes(x = lon, y = lat)) +
+  geom_point(data = dat, aes(x = lon, y = lat, color = Names), size = 3.5, shape = 18) +
+  scale_color_manual(values=c("red", "#800020")) +
+  theme_light() + 
+  geom_text(aes(x = -42, y = -26, label = str_glue("{round(distance/1000, 2)} km"))) +
+  labs(x = "Longitude",
+       y = "Latitude",
+       color = "University:",
+       title = "Distance between 'Faculdade de Letras' (UFRJ) and 'Instituto de Letras' (UFRGS)") +
+  ylim(-33, -10) + 
+  theme(legend.position = "right",
+        legend.background = element_rect(color = "black"),  # legend block
+        axis.text.x = element_text(angle = 0, hjust = 0.5, face = "bold"), # caption
+        plot.title = element_text(hjust = 0.35, face = "bold"),
+        axis.text.y = element_text(face = "bold")) 
+ 
