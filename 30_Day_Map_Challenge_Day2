@@ -1,0 +1,56 @@
+###################################################################################################
+######################### This code was made by Larissa Cury (UFRGS)################################
+###################################################################################################
+
+### Aim: #30DayMapChallenge: Day 2 #lines
+### Link: https://twitter.com/hashtag/30DayMapChallenge?src=hashtag_click
+
+### following the SO post:
+### link: https://stackoverflow.com/questions/66934312/adding-rivers-to-a-map-with-rnaturalearth
+
+### Load revelant packages:
+
+library(sf)
+library(tidyverse)
+library(maps)
+library(ggspatial)
+library(rnaturalearth)
+library(rnaturalearthdata)
+library(rnaturalearthhires)
+# devtools::install_github("AndySouth/rnaturalearthhires")
+
+### download rivers' information as a sf file:
+
+rivers <- ne_download(scale = 10, type = 'rivers_lake_centerlines', 
+                      category = 'physical', returnclass = "sf")
+
+### plot, if you want to: 
+
+plot(rivers)
+
+### plot a simple map with Ggplot2: 
+
+ggplot() + geom_sf(data = rivers, col = 'blue') +
+labs(title = 'Rivers of the World') + 
+theme_bw() + 
+theme(plot.title = element_text(hjust = 0.5, face = "bold"))
+
+
+### Attempt to plot rivers within Brazil's border:
+
+### Extract BR limits:
+
+# BRA <- ne_states(country = "Brazil", returnclass = "sf")
+
+### Try to crop the map:
+
+# rivers_cropped <- st_crop(st_as_sf(rivers10), xmin = -73.9872354804, xmax = -33.7683777809,
+#                           ymin = -34.7299934555, ymax = 5.24448639569)
+
+### Trying to plot it: 
+
+# ggplot() + 
+  #     geom_sf(data = BRA) +
+  #     theme_bw() + 
+  #     geom_sf(data = brazilRivers, col = 'blue')
+
